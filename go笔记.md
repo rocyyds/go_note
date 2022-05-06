@@ -7948,6 +7948,1468 @@ func main() {
 
 
 
+## 接口(interface)
+
+按顺序，应该讲解多态，但是在讲解多态前，我们需要讲解接口(interface)，因为在golang中，多态特性主要是通过接口来体现的
+
+接口快速入门：
+
+```go
+package main
+
+import "fmt"
+
+// 声明/定义一个接口
+type Usb interface {
+	// 声明了两个没有实现的方法
+	start()
+	stop()
+}
+
+type Phone struct {
+}
+
+// 让phone实现 Usb 接口的方法
+func (p Phone) start() {
+	fmt.Println("手机开始工作")
+}
+func (p Phone) stop() {
+	fmt.Println("手机停止工作")
+}
+
+type Camera struct {
+}
+
+// 让Camera实现Usb接口的方法
+
+func (camera Camera) start() {
+	fmt.Println("相机开始工作")
+}
+func (camera Camera) stop() {
+	fmt.Println("相机停止工作")
+}
+
+// 计算机
+type Computer struct {
+}
+
+// 编写一个方法Working方法，接口一个Usb接口类型变量
+// 只要是实现了Usb接口（所谓实现Usb接口就是指实现了Usb接口声明所有方法）
+func (c Computer) Working(usb Usb) {
+	// 通过usb接口变量来调用Start和Stop方法
+	usb.start()
+	usb.stop()
+}
+
+func main() {
+	// 测试
+	// 先创建结构体变量
+	computer := Computer{}
+	phone := Phone{}
+	camera := Camera{}
+
+	// 关键点
+	computer.Working(phone)
+	computer.Working(camera)
+}
+
+```
+
+
+
+## 接口特点和语法说明
+
+基本介绍：
+
+interface类型可以定义一组方法，但是这些不需要实现，并且interface不能包含任何变量，到某个自定义类型（比如结构体Phone）要使用的时候，再根据具体情况把这些（所有）方法写出来（实现）
+
+基本语法：
+
+```go
+type 接口名 interface{
+  method1(参数列表) 返回值列表
+  method2(参数列表) 返回值列表
+}
+
+// 实现接口所有方法：
+func (t 自定义类型) method1(参数列表) 返回值列表{
+  // 方法实现
+}
+func (t 自定义类型) method2(参数列表) 返回值列表{
+  // 	方法实现
+}
+```
+
+小结说明：
+
+1、接口里的所有方法都没有方法体，即接口的方法都是没有实现的方法。接口体现了程序设计的多态和高内聚低耦合的思想
+
+2、golang中的接口，不需要显式的实现，只要一个变量，含有接口类型中的所有方法，那么这个变量即iu实现这个接口，因此golang中没有implement这样的关键字
+
+```go
+package main
+
+import "fmt"
+
+// 声明/定义一个接口
+type Usb interface {
+	// 声明了两个没有实现的方法
+	start()
+	stop()
+}
+type Usb2 interface {
+	start()
+	stop()
+}
+
+type Phone struct {
+}
+
+// 让phone实现 Usb 接口的方法
+func (p Phone) start() {
+	fmt.Println("手机开始工作")
+}
+func (p Phone) stop() {
+	fmt.Println("手机停止工作")
+}
+
+type Camera struct {
+}
+
+// 让Camera实现Usb接口的方法
+
+func (camera Camera) start() {
+	fmt.Println("相机开始工作")
+}
+func (camera Camera) stop() {
+	fmt.Println("相机停止工作")
+}
+
+// 计算机
+type Computer struct {
+}
+
+// 编写一个方法Working方法，接口一个Usb接口类型变量
+// 只要是实现了Usb接口（所谓实现Usb接口就是指实现了Usb接口声明所有方法）
+func (c Computer) Working(usb Usb) {
+	// 通过usb接口变量来调用Start和Stop方法
+	usb.start()
+	usb.stop()
+}
+
+func main() {
+	// 测试
+	// 先创建结构体变量
+	computer := Computer{}
+	phone := Phone{}
+	camera := Camera{}
+
+	// 关键点
+	computer.Working(phone)
+	computer.Working(camera)
+}
+
+```
+
+
+
+## 接口应用场景的说明
+
+对于初学者讲，理解接口的概念不算太难，难的是不知道什么时候使用接口，下面举几个应用场景：
+
+1、如果要制造轰炸机、武装直升机，专家只需要把飞机需要的功能/规格定下来即可，然后让别人具体实现即可
+
+2、现在有一个项目经理，管理三个程序员，功能开发一个软件，为了控制和管理软件，项目经理可以定义一些接口，然后由程序员实现
+
+
+
+## 接口注意事项和细节
+
+1、接口本身不能创建实例，但是可以指向一个实现了该接口的自定义类型的变量（实例）
+
+```go
+package main
+
+import "fmt"
+
+type AInterface interface {
+	Say()
+}
+
+type Stu struct {
+	Name string
+}
+
+func (stu Stu) Say() {
+	fmt.Println("Stu say()")
+}
+
+func main() {
+	var stu Stu // 	结构体变量，实现了Say() 相当于实现了 AInterface
+	var a AInterface = stu
+	a.Say()
+}
+
+```
+
+2、接口中所有的方法都没有方法体，即都是没有实现的方法
+
+3、在golang中，一个自定义类型需要将某个接口的所有方法都实现，我们说这个自定义类型实现了该接口
+
+4、一个自定义类型只有实现了某个接口，才能将该自定义类型的实例（变量）赋给接口类型
+
+5、只要是自定义数据类型，就可以实现接口，不仅仅是结构体类型
+
+```go
+package main
+
+import "fmt"
+
+type AInterface interface {
+	Say()
+}
+
+type Stu struct {
+	Name string
+}
+
+func (stu Stu) Say() {
+	fmt.Println("Stu say()")
+}
+
+type integer int
+
+func (i integer) Say() {
+	fmt.Println("integer Say i =", i)
+}
+
+func main() {
+	var stu Stu // 	结构体变量，实现了Say() 相当于实现了 AInterface
+	var a AInterface = stu
+	a.Say()
+
+	var i integer = 10
+	var b AInterface = i
+	b.Say() // integer Say i = 10
+}
+
+```
+
+6、一个自定义类型可以实现多个接口
+
+```go
+package main
+
+import "fmt"
+
+type AInterface interface {
+	Say()
+}
+
+type Stu struct {
+	Name string
+}
+
+func (stu Stu) Say() {
+	fmt.Println("Stu say()")
+}
+
+type integer int
+
+func (i integer) Say() {
+	fmt.Println("integer Say i =", i)
+}
+
+type BInterface interface {
+	Hello()
+}
+
+type Monster struct {
+}
+
+func (m Monster) Hello() {
+	fmt.Println("Monster Hello()~~")
+}
+
+func (m Monster) Say() {
+	fmt.Println("Monster Say()~~")
+}
+func main() {
+	var stu Stu // 	结构体变量，实现了Say() 相当于实现了 AInterface
+	var a AInterface = stu
+	a.Say()
+
+	var i integer = 10
+	var b AInterface = i
+	b.Say() // integer Say i = 10
+
+	// Monster实现了AInterfaca和BInterface
+	var monster Monster
+	var a2 AInterface = monster
+	var b2 BInterface = monster
+	a2.Say()
+	b2.Hello()
+}
+
+```
+
+7、golang接口中不能有任何变量
+
+8、一个接口（比如A接口）可以继承多个别的接口（比如B、C接口），这时如果要实现A接口，也必须将B、C接口的方法也全部实现
+
+```go
+package main
+
+type BInterface interface {
+	test01()
+}
+
+type CInterface interface {
+	test02()
+}
+
+type AInterface interface {
+	BInterface
+	CInterface
+	test03()
+}
+
+// 如果需要实现AInterface，就需要将BInterface、CInterface的方法都实现
+type Stu struct {
+}
+
+func (stu Stu) test01() {
+
+}
+func (stu Stu) test02() {
+
+}
+func (stu Stu) test03() {
+
+}
+func main() {
+	var stu Stu
+	var a AInterface = stu
+	a.test01()
+}
+
+```
+
+9、interface类默认是一个指针（引用类型），如果没有对interface初始化就使用，那么会输出nil
+
+10、空接口interface{}没有任何方法，所所有类型都实现了空接口，即我们可以把任何一个变量赋给空接口
+
+```go
+package main
+
+import "fmt"
+
+type BInterface interface {
+	test01()
+}
+
+type CInterface interface {
+	test02()
+}
+
+type AInterface interface {
+	BInterface
+	CInterface
+	test03()
+}
+
+// 如果需要实现AInterface，就需要将BInterface、CInterface的方法都实现
+type Stu struct {
+}
+
+func (stu Stu) test01() {
+
+}
+func (stu Stu) test02() {
+
+}
+func (stu Stu) test03() {
+
+}
+
+// 空接口
+type T interface{}
+
+func main() {
+	var stu Stu
+	var a AInterface = stu
+	a.test01()
+
+	// 使用空接口
+	var t T = stu // ok
+	fmt.Println(t)
+	var t2 interface{} = stu
+	var num1 float64 = 8.8
+	t2 = num1
+	t = num1
+	fmt.Println(t2, t)
+}
+
+```
+
+
+
+## 接口编程的经典案例
+
+实现对Hero结构体切片的排序：sort.Sort(data Interface)
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/rand"
+	"sort"
+)
+
+// 1、声明Hero结构体
+type Hero struct {
+	Name string
+	Age  int
+}
+
+// 2、声明一个Hero结构体切片类型
+type HeroSlice []Hero
+
+// 3、实现Interface 接口
+func (hs HeroSlice) Len() int {
+	return len(hs)
+}
+
+// Less方法就是决定你使用什么标准进行排序
+// 1、按Hero的年龄从小到大排序
+func (hs HeroSlice) Less(i, j int) bool {
+	// return hs[i].Age < hs[j].Age
+
+	// 修改成 对姓名排序
+	return hs[i].Name < hs[j].Name
+}
+
+func (hs HeroSlice) Swap(i, j int) {
+	// 交换
+	temp := hs[i]
+	hs[i] = hs[j]
+	hs[j] = temp
+	// 下面的一句话 等价于 上面的三句话
+	hs[i], hs[j] = hs[j], hs[i]
+}
+
+// *******声明Student结构体**********
+// 将Student的切片，按Score从大到小排列
+type Student struct {
+	Name  string
+	Age   int
+	Score float64
+}
+
+func main() {
+	// 先定一个一个数组/切片
+	var intSlice = []int{0, -1, 10, 7, 90}
+	// 要求对 intSlice 切片进行排序
+	// 1、冒泡排序...
+	// 2、也可以使用系统提供的方法：
+	sort.Ints(intSlice)
+	fmt.Printf("intSlice: %v\n", intSlice)
+
+	// 对结构体切片进行排序
+	// 1、冒泡排序
+	// 2、也可以使用系统提供的方法：
+
+	// 测试看看是否可以对结构体切片进行排序
+	var heroes HeroSlice
+	for i := 0; i < 10; i++ {
+		hero := Hero{
+			Name: fmt.Sprintf("英雄～%d", rand.Intn(100)),
+			Age:  rand.Intn(100),
+		}
+		// 将 hero append 到 heroes 切片中
+		heroes = append(heroes, hero)
+
+		// 看看排序前的顺序
+		for _, v := range heroes {
+			fmt.Println(v)
+		}
+	}
+	// 调用sort.Sort
+	sort.Sort(heroes)
+	fmt.Println("排序后----------")
+	// 看看排序后的顺序
+	for _, v := range heroes {
+		fmt.Println(v)
+	}
+
+}
+```
+
+
+
+## 实现接口和继承比较
+
+```go
+package main
+
+import "fmt"
+
+// Monkey结构体
+type Money struct {
+	Name string
+}
+
+// 声明/定义接口(鸟飞翔)
+type BirdAble interface {
+	Flying()
+}
+
+// 声明/定义接口(鱼游泳)
+type FishAble interface {
+	Swiming()
+}
+
+func (monkey *Money) climbing() {
+	fmt.Println(monkey.Name, " 生来会爬树")
+}
+
+// LittleMoney结构体
+type LittleMoney struct {
+	Money // 继承
+}
+
+// 让LittleMonkey 实现BirdAble
+func (littlemonkey *LittleMoney) Flying() {
+	fmt.Println(littlemonkey.Name, " 通过学习，会飞翔.....")
+}
+
+// 让LittleMonkey 实现FishAble
+func (littlemonkey *LittleMoney) Swiming() {
+	fmt.Println(littlemonkey.Name, " 通过学习，会游泳.....")
+}
+
+func main() {
+	// 创建一个LittleMoney 实例
+	monkey := LittleMoney{
+		Money{
+			Name: "悟空(小猴子)",
+		},
+	}
+	monkey.climbing()
+	monkey.Flying()
+	monkey.Swiming()
+}
+
+```
+
+对上面代码的小结：
+
+1、当A结构体继承了B结构体，那么A结构体就自动的继承了B结构体的字段和方法，并且可以直接使用
+
+2、当A结构体需要扩展功能，同时又不希望取破坏继承关系，则可以去实现某个接口即可，因此我们可以认为：
+
+​	【实现接口是对继承机制的补充】
+
+## 实现接口vs继承
+
+1、接口和继承解决的问题不同：
+
+​	继承的价值主要在于：解决代码的复用性和可维护性
+
+​	接口的价值主要在于：设计，设计好各种规范（方法），让其他自定义类型去实现这些方法
+
+2、接口比继承更加灵活
+
+​	接口比继承更加灵活，继承是满足 is - a 的关系，而接口只需满足 like - a 的关系
+
+3、接口在一定程度上实现代码解耦
+
+
+
+## 面向对象编程三大特性-多态
+
+变量（实例）具有多种形态，面向对象的第三大特征，在go语言，多态特征是通过接口实现的，可以按照统一的接口来调用不同的实现，这时接口变量就呈现不同的形态
+
+接口体现多态特征：
+
+1、多态参数：在前面的Usb接口案例，Usb usb，既可以接收手机变量，又可以接收相机变量，就体现了Usb接口多态
+
+2、多态数组：演示一个案例，给Usb数组中，存放Phone结构体和Camera结构体变量，Phone还有一个特有的方法call()，请遍历Usb数组，如果是Phone变量，除了调用Usb接口声明的方法外，还需要调用Phone特有方法call 【完成这个功能需要==》类型断言】
+
+```go
+package main
+
+import "fmt"
+
+// 声明/定义一个接口
+type Usb interface {
+	// 声明了两个没有实现的方法
+	start()
+	stop()
+}
+
+type Phone struct {
+	name string
+}
+
+// 让phone实现 Usb 接口的方法
+func (p Phone) start() {
+	fmt.Println("手机开始工作")
+}
+func (p Phone) stop() {
+	fmt.Println("手机停止工作")
+}
+
+type Camera struct {
+	name string
+}
+
+// 让Camera实现Usb接口的方法
+
+func (camera Camera) start() {
+	fmt.Println("相机开始工作")
+}
+func (camera Camera) stop() {
+	fmt.Println("相机停止工作")
+}
+
+// 计算机
+type Computer struct {
+}
+
+// 编写一个方法Working方法，接口一个Usb接口类型变量
+// 只要是实现了Usb接口（所谓实现Usb接口就是指实现了Usb接口声明所有方法）
+func (c Computer) Working(usb Usb) {
+	// 通过usb接口变量来调用Start和Stop方法
+	usb.start()
+	usb.stop()
+}
+
+func main() {
+	// 测试
+	// 先创建结构体变量
+	computer := Computer{}
+	phone := Phone{}
+	camera := Camera{}
+
+	// 关键点
+	computer.Working(phone)
+	computer.Working(camera)
+
+	// 定义一个Usb接口数组，可以存放Phone和Camear的结构体变量
+	// 这里就体现出多态数组
+	var usbArr [3]Usb
+	usbArr[0] = Phone{"vivo"}
+	usbArr[1] = Phone{"小米"}
+	usbArr[2] = Camera{"尼康"}
+	fmt.Println(usbArr)
+
+}
+
+```
+
+
+
+## 类型断言的基本使用
+
+类型断言，由于接口是一般类型，不知道具体类型，如果要转成具体类型，就需要使用类型断言
+
+```go
+package main
+
+import "fmt"
+
+type Point struct {
+	x int
+	y int
+}
+
+func main() {
+	var a interface{}
+	var point Point = Point{1, 2}
+	a = point // ok
+	// 如何将 a 赋给一个Point变量？
+	b := a.(Point) // 类型断言
+	fmt.Println(b)
+
+	// 类型断言的其它案例
+	var x interface{}
+	var b2 float32 = 1.1
+	x = b2 // 空接口可以接收任意类型
+	// x => float32 [使用类型断言]
+	y := x.(float32)
+	fmt.Println(y)
+}
+
+```
+
+对上面代码的说明：
+
+在进行类型断言时，如果类型不匹配，就会报 panic，因此进行类型断言时，要确保原来的空接口指向的就是断言的类型
+
+如何在进行断言时，带上检测机制，如果成功就ok，否则也不要报panic
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+type Point struct {
+	x int
+	y int
+}
+
+func main() {
+	var a interface{}
+	var point Point = Point{1, 2}
+	a = point // ok
+	// 如何将 a 赋给一个Point变量？
+	b := a.(Point) // 类型断言
+	fmt.Println(b)
+
+	// 类型断言的其它案例
+	// var x interface{}
+	// var b2 float32 = 1.1
+	// x = b2 // 空接口可以接收任意类型
+	// // x => float32 [使用类型断言]
+	// y := x.(float32)
+	// fmt.Println(y)
+
+	// 类型断言(带检测)
+	var x interface{}
+	var b2 float32 = 1.1
+	x = b2 // 空接口可以接收任意类型
+	// x => float32 [使用类型断言]
+
+	// if y,ok := x.(float32);ok{}
+	y, ok := x.(float32)
+	if ok {
+		fmt.Println("convert success")
+		fmt.Printf("y 的类型是：%T 值是：%v\n", y, y)
+	} else {
+		fmt.Println("convert fail")
+	}
+	fmt.Println("继续执行...")
+
+}
+
+```
+
+
+
+## 类型断言最佳实践
+
+1、在前面的Usb接口案例做改进：
+
+给Phone结构体增加一个特有的方法call()，当Usb接口接收的是Phone变量时，
+
+还需要调用call()方法
+
+```go
+package main
+
+import "fmt"
+
+// 声明/定义一个接口
+type Usb interface {
+	// 声明了两个没有实现的方法
+	start()
+	stop()
+}
+
+type Phone struct {
+	name string
+}
+
+// 让phone实现 Usb 接口的方法
+func (p Phone) start() {
+	fmt.Println("手机开始工作")
+}
+func (p Phone) stop() {
+	fmt.Println("手机停止工作")
+}
+
+func (p Phone) Call() {
+	fmt.Println("手机开始打电话")
+}
+
+type Camera struct {
+	name string
+}
+
+// 让Camera实现Usb接口的方法
+
+func (camera Camera) start() {
+	fmt.Println("相机开始工作")
+}
+func (camera Camera) stop() {
+	fmt.Println("相机停止工作")
+}
+
+// 计算机
+type Computer struct {
+}
+
+// 编写一个方法Working方法，接口一个Usb接口类型变量
+// 只要是实现了Usb接口（所谓实现Usb接口就是指实现了Usb接口声明所有方法）
+func (computer Computer) Working(usb Usb) {
+	// 通过usb接口变量来调用Start和Stop方法
+	usb.start()
+	// 如果usb 是指向Phone结构体变量，则还需要调用Call方法
+	// 类型断言【体会】
+	// 接口添加call方法，等于所有产品都有打电话功能了，相机不能打电话的
+	// 所以通过断言来判断是手机的时候，才调用call
+	if phone, ok := usb.(Phone); ok {
+		phone.Call()
+	}
+	usb.stop()
+}
+
+func main() {
+
+	// 定义一个Usb接口数组，可以存放Phone和Camear的结构体变量
+	// 这里就体现出多态数组
+	var usbArr [3]Usb
+	usbArr[0] = Phone{"vivo"}
+	usbArr[1] = Phone{"小米"}
+	usbArr[2] = Camera{"尼康"}
+	fmt.Println(usbArr)
+
+	// 遍历usbArr
+	// Phone还有一个特有的方法call()，请遍历Usb数组，如果是Phone变量，
+	// 除了调用Usb 接口声明的方法外，还需要调用Phone 特有方法call（）  ==》类型断言
+	var computer Computer
+	for _, v := range usbArr {
+		computer.Working(v)
+		fmt.Println()
+	}
+}
+
+```
+
+
+
+2、写一函数，循环判断传入参数的类型
+
+```go
+package main
+
+import "fmt"
+
+// 编写一个函数，可以判断输入的参数是什么类型
+func TypeJudge(items ...interface{}) {
+	for index, x := range items {
+		switch x.(type) {
+		case bool:
+			fmt.Printf("第%v个参数是bool类型，值是%v\n", index+1, x)
+		case float32:
+			fmt.Printf("第%v个参数是float32类型，值是%v\n", index+1, x)
+		case float64:
+			fmt.Printf("第%v个参数是float64类型，值是%v\n", index+1, x)
+		case int, int32, int64:
+			fmt.Printf("第%v个参数是整数类型，值是%v\n", index+1, x)
+		case string:
+			fmt.Printf("第%v个参数是string类型，值是%v\n", index+1, x)
+		default:
+			fmt.Printf("第%v个参数类型不确定，值是%v\n", index+1, x)
+		}
+	}
+}
+
+func main() {
+	var n1 float32 = 1.1
+	var n2 float64 = 2.3
+	var n3 int32 = 30
+	var name string = "tom"
+	address := "北京"
+	n4 := 300
+
+	TypeJudge(n1, n2, n3, name, address, n4)
+}
+
+```
+
+
+
+3、在前面代码的基础上，增加判断 Student 类型和 *Student 类型
+
+```go
+package main
+
+import "fmt"
+
+// 定义Student类型
+type Student struct {
+}
+
+// 编写一个函数，可以判断输入的参数是什么类型
+func TypeJudge(items ...interface{}) {
+	for index, x := range items {
+		switch x.(type) {
+		case bool:
+			fmt.Printf("第%v个参数是bool类型，值是%v\n", index+1, x)
+		case float32:
+			fmt.Printf("第%v个参数是float32类型，值是%v\n", index+1, x)
+		case float64:
+			fmt.Printf("第%v个参数是float64类型，值是%v\n", index+1, x)
+		case int, int32, int64:
+			fmt.Printf("第%v个参数是整数类型，值是%v\n", index+1, x)
+		case string:
+			fmt.Printf("第%v个参数是string类型，值是%v\n", index+1, x)
+		case Student:
+			fmt.Printf("第%v个参数是Student类型，值是%v\n", index+1, x)
+		case *Student:
+			fmt.Printf("第%v个参数是*Student类型，值是%v\n", index+1, x)
+		default:
+			fmt.Printf("第%v个参数类型不确定，值是%v\n", index+1, x)
+		}
+	}
+}
+
+func main() {
+	var n1 float32 = 1.1
+	var n2 float64 = 2.3
+	var n3 int32 = 30
+	var name string = "tom"
+	address := "北京"
+	n4 := 300
+
+	stu1 := Student{}
+	stu2 := &Student{}
+
+	TypeJudge(n1, n2, n3, name, address, n4, stu1, stu2)
+}
+
+```
+
+
+
+# 第十二章_文件操作
+
+## 文件的基本介绍
+
+文件，对我们并不陌生，文件是数据源（保存数据的地方）的一种，比如大家经常使用的word文档、txt文档、excel文件...都是文件，文件最主要的作用就是保存数据，它既可以保存一张图片，也可以保存视频、声音.....
+
+文件在程序中是以流的形式来操作的
+
+流：数据在数据源（文件）和程序（内存）之间经历的路径
+
+输入流：数据从数据源（文件）到程序（内存）的路径
+
+输出流：数据从程序（内存）到数据源（文件）的路径
+
+在golang中，os.File 封装所有文件相关操作，File是一个结构体
+
+
+
+## 打开文件和关闭文件
+
+1、打开一个文件进行读操作：
+
+​	os.Open(name string) (*File,error)
+
+2、关闭文件：
+
+​	os.Close
+
+案例演示：
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	// 打开文件
+	// 概念说明：file的叫法
+	// 1、file 叫 file对象
+	// 2、file 叫 file指针
+	// 3、file 叫 file 文件句柄
+	file, err := os.Open("/Users/roc/go/src/goproject/src/go_code/oa/db/db.go")
+	if err != nil {
+		fmt.Println("open file err=", err)
+	}
+
+	// 输出文件，看看文件是什么，看出file 就是一个指针 *File
+	fmt.Printf("file = %v", file)
+
+	// 关闭文件
+	err = file.Close()
+	if err != nil {
+		fmt.Println("clouse file err=", err)
+	}
+}
+
+```
+
+
+
+## 创建文件并写入内容
+
+1、读取文件的内容并显示在终端（带缓冲区的方式），使用os.Open、File.Close、bufio.NewReader()、reader.ReadString函数和方法
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
+)
+
+func main() {
+	// 打开文件
+	// 概念说明：file的叫法
+	// 1、file 叫 file对象
+	// 2、file 叫 file指针
+	// 3、file 叫 file 文件句柄
+	file, err := os.Open("/Users/roc/go/src/goproject/src/go_code/oa/db/db.go")
+	if err != nil {
+		fmt.Println("open file err=", err)
+	}
+
+	// 当函数退出时，要及时关闭file
+	defer file.Close() // 要及时关闭file，否则会有内存泄漏
+
+	// 创建一个 *Reader ，是带缓冲的
+	// const( defaultBufSize = 4096) // 默认缓冲区为4096
+	reader := bufio.NewReader(file)
+
+	// 循环读取文件的内容
+	for {
+		str, err := reader.ReadString('\n') // 读到一个换行就结束
+		if err == io.EOF {                  // io.EOF表示文件的末尾
+			break
+		}
+		// 输出内容
+		fmt.Print(str)
+	}
+	fmt.Println("文件读取结束")
+}
+
+```
+
+2、一次性读取文件
+
+读取文件的内容并显示在终端（使用ioutil一次将整个文件读入到内存中），这种方式适合用于文件不大的情况，相关方法和函数【ioutil.ReadFile】
+
+```go
+package main
+
+import (
+	"fmt"
+	"io/ioutil"
+)
+
+func main() {
+	// 使用ioutil.ReadFile一次性将文件读取到位
+	file := "/Users/roc/go/src/goproject/src/go_code/oa/db/db.go"
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		fmt.Println("出错了：", err)
+	}
+	// 把读取到的内容显示到终端
+	fmt.Printf("%v", string(content)) // []byte
+	// 因为我们没有显式的Open文件，因此也不需要显式的Close文件
+	// 因为文件的Open和Close被封装到 ReadFile 函数内部
+}
+
+```
+
+3、创建文件并写入内容
+
+```go
+func OpenFile(name string,flag int,perm FileMode) (file *File,err error)
+```
+
+说明：os.OpenFile是一个更一般性的文件打开函数，它会使用指定的选项（如O_RDONLY等）、指定的模式（如O666等）打开指定名称的文件。如果操作成功，返回的文件对象可用于 I/O，如果出错，错误底层类型是*PathError
+
+
+
+## 写文件的四种方式
+
+1、创建一个新文件，写入内容5句"hello,Golang"
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
+func main() {
+	// 创建一个新文件，写入内容5句"hello,Golang"
+	// 1、打开文件 /Users/roc/go/src/goproject/src/go_code/chapter12/filedemo04/abc.txt
+	filePath := "/Users/roc/go/src/goproject/src/go_code/chapter12/filedemo04/abc.txt"
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		fmt.Printf("open file err=%v", err)
+		return
+	}
+
+	// 及时关闭file
+	defer file.Close()
+
+	// 准备写入5句"hello Golang"
+	str := "hello,Golang\r\n"
+	// 写入时，使用带缓存的 *Writer
+	writer := bufio.NewWriter(file)
+	for i := 0; i < 5; i++ {
+		writer.WriteString(str)
+	}
+
+	// 因为Write是带缓存，因此在调用WriteString方法时，其实
+	// 内容是先写入到缓存的，所以需要调用Flush方法，将缓存的数据真正写入到文件中，否则文件中会没有数据！！！
+	writer.Flush()
+
+}
+
+```
+
+2、打开一个存在的文件中，将原来的内容覆盖成新的内容10句"你好，golang"
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
+func main() {
+	// 打开一个存在的文件中，将原来的内容覆盖成新的内容10句"你好，golang"
+	// 1、打开已经存在的文件 /Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe02/abc.txt
+	filePath := "/Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe02/abc.txt"
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC, 0666)
+	if err != nil {
+		fmt.Printf("open file err=%v", err)
+		return
+	}
+
+	// 及时关闭file
+	defer file.Close()
+	// 准备写入10句"你好，golang"
+	str := "你好，golang\r\n"
+	//写入时，使用带缓存的 *Write
+	write := bufio.NewWriter(file)
+	for i := 0; i < 10; i++ {
+		write.WriteString(str)
+	}
+	// 因为Write是带缓存，因此在调用WriteString方法时，其实
+	// 内容是先写入到缓存的，所以需要调用Flush方法，将缓存的数据真正写入
+	write.Flush()
+
+}
+
+```
+
+3、打开一个存在的文件，在原来的内容追加内容"ABC!English!" 
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
+func main() {
+	// 打开一个存在的文件，在原来的内容追加内容"ABC!English!"
+	// 1、打开已经存在的文件 /Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe03/abc.txt
+	filePath := "/Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe03/abc.txt"
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Printf("open file err=%v", err)
+		return
+	}
+
+	// 及时关闭file
+	defer file.Close()
+	// 准备追加"ABC!English"
+	str := "ABC!English\r\n"
+	//写入时，使用带缓存的 *Write
+	write := bufio.NewWriter(file)
+	for i := 0; i < 10; i++ {
+		write.WriteString(str)
+	}
+	// 因为Write是带缓存，因此在调用WriteString方法时，其实
+	// 内容是先写入到缓存的，所以需要调用Flush方法，将缓存的数据真正写入
+	write.Flush()
+
+}
+
+```
+
+4、打开一个存在的文件，将原来的内容读出显示在终端，并且追加5句"hello，北京！"
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
+)
+
+func main() {
+	// 4、打开一个存在的文件，将原来的内容读出显示在终端，并且追加5句"hello，北京！"
+	// 1、打开已经存在的文件 /Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe04/abc.txt
+	filePath := "/Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe04/abc.txt"
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Printf("open file err=%v", err)
+		return
+	}
+
+	// 及时关闭file
+	defer file.Close()
+
+	// 先读取原来文件的内容，并显示在终端
+	reader := bufio.NewReader(file)
+	for {
+		str, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+		// 显示到终端
+		print(str)
+	}
+
+	// 准备追加"hello，北京！"
+	str := "hello，北京！\r\n"
+	//写入时，使用带缓存的 *Write
+	write := bufio.NewWriter(file)
+	for i := 0; i < 5; i++ {
+		write.WriteString(str)
+	}
+	// 因为Write是带缓存，因此在调用WriteString方法时，其实
+	// 内容是先写入到缓存的，所以需要调用Flush方法，将缓存的数据真正写入
+	write.Flush()
+
+}
+
+```
+
+使用os.OpenFile()、bufio.NewWriter()、*Writer的方法WriteString完成上面的任务
+
+
+
+基本应用实例：
+
+编程一个程序，将一个文件的内容，写入到另一个文件。注：这两个问及i安已经存在了
+
+说明：使用ioutil.ReadFile、ioutil.WriteFile 完成写文件的任务
+
+```go
+package main
+
+import (
+	"fmt"
+	"io/ioutil"
+)
+
+func main() {
+	// 将/Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe05/abc.txt 导入到 kkk.txt
+	// 1、首先将 abc.txt 读取到内存
+	// 2、将读取到的内容写入kkk.txt
+
+	file1Path := "/Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe05/abc.txt"
+	file2Path := "/Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe05/kkk.txt"
+
+	data, err := ioutil.ReadFile(file1Path)
+	if err != nil {
+		// 说明读取文件有错误
+		fmt.Println("err = ", err)
+		return
+	}
+
+	err = ioutil.WriteFile(file2Path, data, 0666)
+	if err != nil {
+		fmt.Println("write file error = ", err)
+	}
+}
+
+```
+
+
+
+## 判断文件或目录存在
+
+golang判断文件或文件夹是否存在的方法为使用os.Stat()函数返回的错误值进行判断：
+
+1、如果返回的错误为nil，说明文件或文件夹存在
+
+2、如果返回的错误类型使用os.IsNotExist()判断为true，说明文件或文件夹不存在
+
+3、如果返回的错误为其它类型，则不确定是否存在
+
+```go
+func PathExists(path string) (bool,error){
+  _,err := os.Stat(path)
+  if err == nil{	// 文件或者目录存在
+    return true,nil
+  }
+  if os.IsNotExist(err){
+    return false,nil
+  }
+  return false,err
+}
+```
+
+
+
+## 拷贝文件
+
+将一张图片/电影/mp3拷贝到另一个目录下
+
+```go
+func Copy(dst Write,src Reader)(written int64,err error)
+```
+
+注意：Copy是 io 包提供的
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
+)
+
+// 自己编写一个函数，接收两个文件路径 srcFileName dstFileName
+func CopyFile(dstFileName string, srcFileName string) (written int64, err error) {
+	srcfile, err := os.Open(srcFileName)
+	if err != nil {
+		fmt.Printf("open file err=%v", err)
+	}
+	defer srcfile.Close()
+
+	// 通过srcfile，获取到Reader
+	reader := bufio.NewReader(srcfile)
+
+	// 打开dsFileName
+	dstFile, err := os.OpenFile(dstFileName, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		fmt.Printf("open file err =%v", err)
+		return
+	}
+	// 通过dstFile，获取到Write
+	write := bufio.NewWriter(dstFile)
+	defer dstFile.Close()
+	return io.Copy(write, reader)
+}
+func main() {
+	// 将文件拷贝到当前目录
+	//
+	srcFile := "/Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe05/123.png"
+	dstFile := "/Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe06/456.png"
+	_, err := CopyFile(dstFile, srcFile)
+	if err == nil {
+		fmt.Println("拷贝完成")
+	} else {
+		fmt.Println("拷贝出错 err=", err)
+	}
+
+	// 调用CopyFile完成文件拷贝
+
+}
+
+```
+
+
+
+## 统计字符个数
+
+统计英文、数字、空格和其它字符数量
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
+)
+
+// 定义一个结构体，用于保存统计的结果
+type Charcount struct {
+	ChCount    int // 记录英文个数
+	NumCount   int // 记录数字个数
+	SpaceCount int // 记录空格个数
+	OtherCount int // 记录其它字符的个数
+}
+
+func main() {
+	// 思路：打开一个文件，创一个Reader
+	// 每读取一行，就去统计该行有多少个 英文、数字、空格和其它字符
+	// 然后将结果保存到一个结构体中
+	fileName := "/Users/roc/go/src/goproject/src/go_code/chapter12/filedemo05/exe07/kkk.txt"
+	file, err := os.Open(fileName)
+	if err != nil {
+		fmt.Println("open file err=", err)
+		return
+	}
+	defer file.Close()
+
+	// 定义一个CharCount实例
+	var count Charcount
+	// 创建一个Reader
+	reader := bufio.NewReader(file)
+	//开始循环读取fiileName的内容
+	for {
+		str, err := reader.ReadString('\n')
+		if err == io.EOF { // 读到文件末尾就退出
+			break
+		}
+
+		// 为了兼容中文字符，可以将str转成 []rune
+		str = string([]rune(str))
+		// 遍历str，进行统计
+		for _, v := range str {
+			switch {
+			case v >= 'a' && v <= 'z':
+				fallthrough
+			case v >= 'A' && v <= 'Z':
+				count.ChCount++
+			case v >= ' ' && v <= '\t':
+				count.SpaceCount++
+			case v >= '0' && v <= '9':
+				count.NumCount++
+			default:
+				count.OtherCount++
+			}
+		}
+	}
+	// 输出统计的结果看看是否正确
+	fmt.Printf("字符的个数=%v 数字的个数=%v 空格的个数=%v 其它字符的个数=%v",
+		count.ChCount, count.NumCount, count.SpaceCount, count.OtherCount)
+}
+
+```
+
+
+
+
+
+
+
+
+
 
 
 
