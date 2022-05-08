@@ -20,7 +20,7 @@
 
 //大括号是成对出现的，缺一不可
 
-# go的转义字符（escape char）
+# go的转义字符(escape char)
 
 \t	：一个制表位，实现对齐的功能；
 
@@ -38,7 +38,7 @@
 
 语法错误：尝试去看懂编译器报告的语法错误。
 
-# go语言中的注释（comment）
+# go语言中的注释(comment)
 
 // 行注释
 
@@ -9401,6 +9401,898 @@ func main() {
 }
 
 ```
+
+
+
+## 命令行参数
+
+获取命令行输入的各种参数
+
+os.Args是一个string的切片，用来存储所有的命令行参数
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	fmt.Println("命令行的参数有：", len(os.Args))
+	// 遍历os.Args切片，就可以得到所有的命令行参数值
+	for i, v := range os.Args {
+		fmt.Printf("args[%v]=%v\n", i, v)
+	}
+}
+
+```
+
+
+
+## flag包用来解析命令行参数
+
+说明：前面的方式是比较原生的方式，对解析参数不是特别的方便，特别是带有指定参数形式的命令行
+
+比如：cmd>main.exe -f c:/aaa.txt -p 200 -u root 这样的形式命令行，go设计者给我提供了flag包，可以方便的解析命令行参数，而且参数顺序可以随意
+
+```go
+package main
+
+import (
+	"flag"
+	"fmt"
+)
+
+func main() {
+	// 定义几个变量，用于接收命令行的参数值
+	var user string
+	var pwd string
+	var host string
+	var port int
+
+	// &user，就是接收用户命令行中输入的 -u 后面的参数
+	// "u"，就是 -u 指定参数
+	// ""，默认值
+	// "用户名，默认为空" 说明
+	flag.StringVar(&user, "u", "", "用户名,默认为空")
+	flag.StringVar(&pwd, "pwd", "", "密码,默认为空")
+	flag.StringVar(&host, "h", "localhost", "主机名,默认为localhost")
+	flag.IntVar(&port, "port", 3306, "端口号,默认为3306")
+
+	// 这里有一个非常重要的操作：转换，必须调用该方法
+	flag.Parse()
+
+	// 输出结果
+	fmt.Printf("user=%v pwd=%v host=%v port=%v", user, pwd, host, port)
+}
+
+```
+
+
+
+## json介绍和应用场景
+
+json（JavaScript Object Notation）是一种轻量级的数据交换格式，易于人阅读和编写，同时也易于机器解析和生成
+
+json是在2001年开始推广使用的数据格式，目前已经成为主流的数据格式
+
+json易于机器解析和生成，并有效地提升网络传输效率，通常程序在网络传输时会先将数据（结构体、map等）序列化成json字符串，到接收方得到json字符串时，再反序列化恢复成原来的数据类型（结构体、map等），这种方式已然成为各个语言的标准
+
+golang ---(序列化)---> json字符串 ---(网络传输)---> 程序 ---(反序列化)---> 其他语言
+
+
+
+## json数据格式说明
+
+在 js语言中，一切都是对象，因此任何的数据类型都可以通过json来表示，例如字符串、数字、对象、数组、map、结构体等
+
+json键值对是用来保存数据一种方式，键值对组合中的键名写在前面并用双引号""包裹，使用冒号 : 分割，然后紧接着值，比如：
+
+{"firstName":"json"}
+
+{"name":"tom","age":18,"address":["北京","上海"]}
+
+[{"name":"tom","age":18,"address":["北京","上海"]},
+
+{"name":"many","age":28,"address":["广州","深圳"]}
+
+在线解析：https://www.json.cn
+
+
+
+## json序列化
+
+json序列化是指，将有key-value结构的数据类型（比如结构体、map、切片）序列化成json字符串的操作
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// 定义一个结构体
+type Monster struct {
+	Name     string  `json:"name"` // 反射机制
+	Age      int     `json:"age"`
+	Birthday string  `json:"birthday"`
+	Sal      float64 `json:"sal"`
+	Skill    string  `json:"skill"`
+}
+
+// 将结构体序列化
+func testStruct() {
+	// 演示
+	monster := Monster{
+		Name:     "牛魔王",
+		Age:      500,
+		Birthday: "2011-11-11",
+		Sal:      8000.0,
+		Skill:    "牛魔拳",
+	}
+
+	// 将monster序列化
+	data, err := json.Marshal(&monster)
+	if err != nil {
+		fmt.Println("序列化错误 err=", err)
+	}
+	// 输出序列化后的结果
+	fmt.Println("monster序列化后：", string(data))
+}
+
+// 将map进行序列化
+func testMap() {
+	// 定义一个map
+	// 使用map，需要make
+	a := make(map[string]interface{})
+	a["name"] = "红孩儿"
+	a["age"] = 30
+	a["address"] = "洪崖洞"
+
+	// 将 a 进行序列化
+	data, err := json.Marshal(&a)
+	if err != nil {
+		fmt.Println("序列化错误 err=", err)
+	}
+	// 输出序列化后的结果
+	fmt.Println("amap序列化后：", string(data))
+}
+
+// 演示对切片进行序列化
+func testSlice() {
+	var slice []map[string]interface{}
+	m1 := make(map[string]interface{})
+	m1["name"] = "jacak"
+	m1["age"] = "7"
+	m1["address"] = "北京"
+	slice = append(slice, m1)
+
+	m2 := make(map[string]interface{})
+	m2["name"] = "tom"
+	m2["age"] = "20"
+	m2["address"] = [2]string{"墨西哥", "夏威夷"}
+	slice = append(slice, m2)
+
+	// 将切片进行序列化操作
+	data, err := json.Marshal(slice)
+	if err != nil {
+		fmt.Println("序列化错误 err=", err)
+	}
+	// 输出序列化后的结果
+	fmt.Println("slice序列化后：", string(data))
+}
+
+// 对基本数据类型序列化，【意义不大】
+func tesetFloat64() {
+	var num1 float64 = 2345.67
+	// 对num1进行序列化
+	data, err := json.Marshal(num1)
+	if err != nil {
+		fmt.Println("序列化出错", err)
+	}
+	fmt.Println(string(data))
+}
+func main() {
+	// 演示将结构体、map、切片进行序列化
+	testStruct()   // 对结构体序列化
+	testMap()      // 对map序列化
+	testSlice()    // 对切片序列化
+	tesetFloat64() // 对基本数据类型序列化
+}
+
+```
+
+## 序列化struct时tag的使用
+
+注意事项：对于结构体的序列化，如果我们希望序列化后的key的名字，由我们重新指定，那么可以给struct指定一个tag标签
+
+```go
+// 定义一个结构体
+type Monster struct {
+	Name     string  `json:"name"` // 反射机制
+	Age      int     `json:"age"`
+	Birthday string  `json:"birthday"`
+	Sal      float64 `json:"sal"`
+	Skill    string  `json:"skill"`
+}
+```
+
+
+
+## json的反序列化
+
+json反序列化是指，将json字符串反序列化成对应的数据类型（比如结构体、map、切片）的操作
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// 定义一个结构体
+type Monster struct {
+	Name     string
+	Age      int
+	Birthday string
+	Sal      string
+	Skill    string
+}
+
+// 演示反序列化将json字符串，反序列化成结构体
+func unmarshalStruct() {
+	// 说明str：在项目开发中，是通过网络传输获取到，或是读取文件获取到
+	str := "{\"name\":\"牛魔王\",\"age\":500,\"birthday\":\"2011-11-11\",\"sal\":8000,\"skill\":\"牛魔拳\"}"
+
+	// 定义一个Monster实例
+	var monster Monster
+	err := json.Unmarshal([]byte(str), &monster)
+	if err != nil {
+		fmt.Println("unmarshal err:", err)
+	}
+	fmt.Println("反序列化后 monster=", monster)
+	fmt.Println("反序列化后 monster.Name=", monster.Name)
+}
+
+// 演示将json字符串，反序列化成map
+func unmarshalMap() {
+	str := "{\"address\":\"洪崖洞\",\"age\":30,\"name\":\"红孩儿\"} "
+
+	// 定义一个map
+	var a map[string]interface{}
+	// 反序列化
+	// 注意：在反序列化map时，不需要make，因为make操作被封装到Unmarshal函数了
+	err := json.Unmarshal([]byte(str), &a)
+	if err != nil {
+		fmt.Println("unmarshalMap err：", err)
+	}
+	fmt.Println("反序列化后 map=", a)
+}
+
+// 演示将json字符串，反序列化成切片
+func unmarshalSlice() {
+	str := `[{"address":"北京","age":"7","name":"jacak"},{"address":["墨西哥","夏威夷"],"age":"20","name":"tom"}]`
+	// 定义一个slice
+	var slice []map[string]interface{}
+	err := json.Unmarshal([]byte(str), &slice)
+	if err != nil {
+		fmt.Println("unmarshalSlice err：", err)
+	}
+	fmt.Println("反序列化后 slice=", slice)
+}
+func main() {
+	unmarshalStruct()
+	unmarshalMap()
+	unmarshalSlice()
+}
+
+```
+
+对上面代码的小结说明：
+
+1、在反序列化一个json字符串时，要确保反序列化后的数据类型和原来序列化前的数据类型一致
+
+2、如果json字符串是通过程序获取到的，则不需要对 "" 转义处理
+
+
+
+# 第十三章_单元测试
+
+## 单元测试引出
+
+在开发过程中，我们会遇到这样的情况，就是去确认一个函数，或者一个模块的结果是否正确，如
+
+先看一个需求：这里有一个函数，怎样确认它运行的结果是正确的？
+
+```go
+func addUpper(n int) int {
+  res := 0
+  for i := 1; i <= n; i++ {
+    res += i
+  }
+  return res
+}
+```
+
+传统方法来解决：
+
+在main函数中，调用addUpper函数，看看实际输出的结果是否和预期的结果一致，如果一致，则说明函数正确，否则函数有错误，然后修改错误
+
+```go 
+package main
+
+import "fmt"
+
+// 一个被测试函数
+func addUpper(n int) int {
+	res := 0
+	for i := 1; i <= n-1; i++ {
+		res += i
+	}
+	return res
+}
+func main() {
+	// 传统的测试方法，就是在main函数中使用看看结果是否正确
+	res := addUpper(10)
+	if res != 55 {
+		fmt.Printf("addUpper错误 返回值=%v 期望值=%v", res, 55)
+	} else {
+		fmt.Printf("addUper正确 返回值=%v 期望值=%v", res, 55)
+	}
+}
+
+```
+
+传统方法的缺点分析：
+
+1、不方便：我们需要在main函数中去调用，这样就需要去修改main函数，如果现在项目正在运行，就可能去停止项目
+
+2、不利于管理：因为当我们测试多个函数或者多个模块时，都需要写在main函数，不利于我们管理和清晰我们思路
+
+3、引出单元测试：testing测试框架 可以很好解决这个问题
+
+
+
+## 单元测试快速入门
+
+go语言中自带有一个轻量级的测试框架testing和自带的go test命令来实现单元测试和性能测试，testing框架和其它语言中的测试框架类似，可以基于这个框架写针对相应函数的测试用例，也可以基于该框架写相应的压力测试用例，通过单元测试可以理解如下问题：
+
+1、确保每个函数可运行，并且运行结果是正确的
+
+2、确保写出来的代码性能是好的
+
+3、单元测试能及时的发现程序设计或实现的逻辑错误，使问题及早暴露，便于问题的定位解决，而性能测试的重点在于发现程序设计上的一些问题，让程序能够在高并发的情况下还能保持稳定
+
+
+
+使用go的单元测试，对addUpper和sub函数进行测试
+
+特别说明：测试时，可能需要暂时退出360（因为360可能会认为生成的测试用例程序是木马）
+
+```go
+// testcase01/cal.go
+
+package main
+
+// 一个被测试函数
+func AddUpper(n int) int {
+	res := 0
+	for i := 1; i <= n-1; i++ {
+		res += i
+	}
+	return res
+}
+
+```
+
+```go
+// testcase01/cal_test.go
+package main
+
+import (
+	"testing"
+)
+
+// 编写一个测试用例，去测试addUpper是否正确
+func TestAddUpper(t *testing.T) {
+	// 调用
+	res := AddUpper(10)
+	if res != 55 {
+		// fmt.Printf("AddUpper(10) 执行错误，期望值=%v 实际值=%v\n", 55, res)
+		t.Fatalf("AddUpper(10) 执行错误，期望值=%v 实际值=%v\n", 55, res)
+	}
+
+	// 如果正确，输出日志
+	t.Logf("AddUpper(10) 执行正确...")
+}
+
+```
+
+
+
+## 单元测试细节说明
+
+1、测试用例文件名必须以 _test.go 结尾，比如 cal_test.go ，cal不是固定的
+
+2、测试用例函数必须以 Test 开头，一般来说就是 Test+被测试的函数名，比如 TestAddUpper
+
+3、TestAddUpper(t *testing.T) 的形参类型必须是 *testing.T
+
+4、一个测试用例文件中，可以有多个测试用例函数，比如 TestAddUpper、TestSub
+
+5、运行测试用例指令
+
+​	（1）go test [如果运行正确，无日志；错误时，会输出日志]
+
+​	（2）go test -v [运行正确或是错误，都输出日志]
+
+6、当出现错误时，可以使用 t.Fatalf 来格式化输出错误信息，并退出程序
+
+7、t.Logf 方法可以输出相应的日志
+
+8、测试用例函数，并没有放在main函数中，也执行了，这就是测试用例的方便之处
+
+9、PASS 表示测试用例运行成功，FAIL 表示测试用例运行失败
+
+10、测试单个文件，一定要带上被测试的源文件
+
+​	go test -v cal_test.go cal.go
+
+11、测试单个方法
+
+​	go test -v test.run TestAddUpper
+
+
+
+## 单元测试综合案例
+
+1、编写一个Monster结构体，字段Name、Age、Skill
+
+2、给Monster绑定方法Store，可以将一个Monster变量（对象），序列化后保存到文件中
+
+3、给Monster绑定方法ReStore，可以将一个序列化的Monster，从文件中读取，并反序列化为Monster对象
+
+4、编程测试用例文件 store_test.go ,编写测试用例函数 TestStore 和 TestRestore 进行测试
+
+```go
+// testcase02/monster.go
+
+package monster
+
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+)
+
+type Monster struct {
+	Name  string
+	Age   int
+	Skill string
+}
+
+func (monster *Monster) Store() bool {
+	// 先序列化
+	data, err := json.Marshal(monster)
+	if err != nil {
+		fmt.Println("monster序列化失败 err=", err)
+		return false
+	}
+	// 保存到文件
+	filePath := `/Users/roc/go/src/goproject/src/go_code/chapter13/testcase02/monster.ser`
+	err = ioutil.WriteFile(filePath, data, 0666)
+	if err != nil {
+		fmt.Println("保存文件时出错,err = ", err)
+		return false
+	}
+	return true
+}
+
+func (monster *Monster) Restore() bool {
+	// 1、先读取序列化的字符串
+	filePath := `/Users/roc/go/src/goproject/src/go_code/chapter13/testcase02/monster.ser`
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		fmt.Println("读文件时出错，err=", err)
+		return false
+	}
+	// 2、使用读取到的data []byte，反序列化
+	err = json.Unmarshal(data, monster)
+	if err != nil {
+		fmt.Println("反序列化出错，err=", err)
+		return false
+	}
+	return true
+}
+
+```
+
+```go
+// testcase02/monster_test.go
+
+package monster
+
+import (
+	"testing"
+)
+
+// 测试用例，用于测试Store方法
+func TestStore(t *testing.T) {
+	// 测试数据是很多的，测试很多次，才确定函数模块是稳定的
+	// 先创建一个monster实例
+	monster := &Monster{
+		Name:  "红孩儿",
+		Age:   10,
+		Skill: "吐火",
+	}
+	res := monster.Store()
+	if !res {
+		t.Fatalf("monster函数错误，希望为%v 实际为%v", true, res)
+
+	}
+	t.Fatalf("测试通过")
+}
+
+func TestReStore(t *testing.T) {
+	// 先创建一个Monster实例，不需要指定字段的值
+	var monster Monster
+	res := monster.Restore()
+	if !res {
+		t.Fatalf("monster.ReStore()错误，希望为%v 实际为%v", true, res)
+	}
+	// 进一步判断
+	if monster.Name != "红孩儿~" {
+		t.Fatalf("monster.Restore()错误，希望为%v 实际为%v", "红孩儿~", monster.Name)
+	}
+	t.Fatalf("monster.Restore()测试通过")
+}
+
+```
+
+
+
+# 第十四章_goroutine(协程)和channel(管道)
+
+## goroutine的引出
+
+需求：要求统计1-20000的数字中，那些是素数？
+
+分析思路：
+
+1、传统的方法，就是使用一个循环，循环的判断各个数是不是素数【很慢】
+
+2、使用并发或者并行的方式，将统计素数的任务分配给多个goroutine去完成，这时就会使用到goroutine【速度提高4倍】
+
+
+
+## goroutine基本介绍
+
+进程和线程说明
+
+1、进程就是程序在操作系统中的一次执行过程，是系统进行资源分配和调度的基本单位
+
+2、线程是进程的一个执行实例，是程序执行的最小单元，它是比进程更小的能独立运行的基本单位
+
+3、一个进程可以创建和销毁多个线程，同一个进程中的多个线程可以并发执行
+
+4、一个程序至少有一个进程，一个进程至少有一个线程
+
+
+
+并发和并行
+
+1、多线程程序在单核上运行，就是并发：
+
+​	因为是在一个cpu上，比如有10个线程，每个线程执行10毫秒（进行轮循操作），从人的角度看，好像这10个线程都在运行，但是从微观上看，在某一个时间点看，其实i只有一个线程在执行，这就是并发
+
+2、多线程程序在多核上运行，就是并行
+
+​	因为是在多个cpu上（比如有10个cpu），比如有10个线程，每个线程执行10毫秒（各自在不同cpu上执行），从人的角度看，这10个线程都在运行，但是从微观上看，在某一个时间点看，也同时有10个线程在执行，这就是并行
+
+
+
+并发的特点：
+
+1、多个任务作用在一个cpu
+
+2、从微观的角度看，在一个时间点上，其实只有一个任务在执行
+
+并行的特点：
+
+1、多个任务作用在多个cpu
+
+2、从微观的角度看，在一个时间点上，就是多个任务在同时执行
+
+3、这样看来，并行的速度快
+
+
+
+## go协程和go主线程
+
+1、go主线程（有程序员直接称为线程/也可以理解成进程）：一个go线程上，可以起多个协程，你可以这样理解，协程师轻量级的线程【编译器做优化】
+
+2、go协程的特点
+
+​	有独立的栈空间
+
+​	共享程序堆空间
+
+​	调度由用户控制
+
+​	协程师轻量级的线程
+
+
+
+## 协程快速入门
+
+请编写一个程序，完成如下功能：
+
+1、在主线程（进程）中，开启一个goroutine，该协程每隔1秒输出”hello,world“
+
+2、在主线程中也每隔一秒输出"hello,golang"，输出10次后，退出程序
+
+3、要求主线程和goroutine同时执行
+
+```go
+package main
+
+import (
+	"fmt"
+	"strconv"
+	"time"
+)
+
+func test() {
+	for i := 1; i <= 10; i++ {
+		fmt.Println("test()：hello,world" + strconv.Itoa(i))
+		time.Sleep(time.Second)
+	}
+}
+
+func main() {
+	go test() //开启了一个协程
+	for i := 1; i <= 10; i++ {
+		fmt.Println("main()：hello,golang" + strconv.Itoa(i))
+		time.Sleep(time.Second)
+	}
+}
+
+```
+
+输出的效果说明：main这个主线程和test协程同时执行
+
+```go
+// main()：hello,golang1
+// test()：hello,world1
+// test()：hello,world2
+// main()：hello,golang2
+// main()：hello,golang3
+// test()：hello,world3
+// main()：hello,golang4
+// test()：hello,world4
+// main()：hello,golang5
+// test()：hello,world5
+// main()：hello,golang6
+// test()：hello,world6
+// main()：hello,golang7
+// test()：hello,world7
+// main()：hello,golang8
+// test()：hello,world8
+// main()：hello,golang9
+// test()：hello,world9
+// test()：hello,world10
+// main()：hello,golang10
+```
+
+快速入门小结：
+
+1、主线程是一个物理线程，直接作用在cpu上的，是重量级的，非常耗费cpu资源
+
+2、协程丛主线程开启的，是轻量级的线程，是逻辑态，对资源消耗相对小
+
+3、golang的协程机制是重要的特点，可以轻松的开启上万个协程，其它编程语言的并发机制是一般基于线程的，开启过多的线程，资源耗费大，这里就突显golang在并发上的优势了
+
+
+
+## MPG模式的介绍
+
+M：操作系统的主线程（是物理线程）
+
+P：协程执行需要的上下文
+
+G：协程
+
+MPG模式运行的状态_1
+
+1、当前程序有三个M，如果三个M都在一个cpu运行，就是并发，如果在不同的cpu运行就是并行
+
+2、M1，M2，M3正在执行一个G，M1的协程队列有三个，M2的协程队列有3个，M3协程队列有2个
+
+3、go的协程是轻量级的线程，是逻辑态的，go可以容易的起上万个协程
+
+4、其它程序 c/java 的多线程，往往是内核态的，比较重量级，几千个线程可能耗光cpu
+
+
+
+MPG模式运行的状态_2
+
+1、分成两部分来看
+
+2、原来的情况是M0主线程正在执行G0协程，另外有三个协程在队列等待
+
+3、如果G0协程阻塞，比如读取文件或者数据库等
+
+4、这时就会创建M1主线程（也可能是从已有的线程池中取出M1），并且将等待的3个协程挂到M1下开始执行，M0的主线程下的G0仍然执行文件io的读写
+
+5、这样的MPG调度模式，可以既让G0执行，同时也不会让队列的其它协程一直阻塞，仍然可以并发/并行执行
+
+6、等到G0不阻塞了，M0会被放到空闲的主线程继续执行（从已有的线程池中取），同时G0又会被唤醒
+
+
+
+## go设置运行cpu数目
+
+介绍：为了充分利用多cpu的优势，在golang程序中，设置运行的cpu数目
+
+1、go1.8后，默认让程序运行在多个核上，可以不用设置了
+
+2、go1.8前，还是要设置一下，可以更高效的利用cpu
+
+```go
+package main
+
+import (
+	"fmt"
+	"runtime"
+)
+
+func main() {
+	// 查看cpu数目
+	cpuNum := runtime.NumCPU()
+	fmt.Println("cpuNum =", cpuNum)
+
+	// 可以自己设置使用多少个cpu
+	runtime.GOMAXPROCS(cpuNum - 1)
+	fmt.Println("ok")
+}
+
+```
+
+
+
+## 协程并发(并行)资源竞争问题
+
+需求：现在要计算1-200的各个数的阶乘，并且把各个数的阶乘放入到map中，最后显示出来，要求使用goroutine完成
+
+分析思路：
+
+1、使用goroutine来完成，效率高，但是会出现并发/并行安全问题
+
+2、这里就提出了不同goroutine如何通信的问题
+
+代码实现：
+
+1、使用goroutine来完成（看看使用goroutine并发完成会出现什么问题？然后我们会去解决）
+
+2、在运行某个程序时，如何知道是否存在资源竞争问题？在编译程序时，增加一个参数 -race即可
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+var (
+	myMap = make(map[int]int, 10)
+)
+
+func test(n int) {
+	res := 1
+	for i := 1; i <= n; i++ {
+		res *= i
+	}
+	// 这里将res结果放入到myMap
+	myMap[n] = res // 第一个问题：fatal error: concurrent map writes
+}
+
+func main() {
+	// 开启多个协程
+	for i := 1; i <= 200; i++ {
+		go test(i)
+	}
+
+	// 休眠10秒钟【第二个问题：？？？】
+	time.Sleep(time.Second * 10)
+
+	// 遍历结果
+	for i, v := range myMap {
+		fmt.Printf("map[%d]=%d\n", i, v)
+	}
+}
+
+```
+
+
+
+## 全局互斥锁解决资源竞争
+
+不同goroutine之间如何通讯
+
+1、全局变量加锁同步
+
+2、channel
+
+使用全局变量加锁同步改进程序
+
+1、因为没有对全局变量m加锁，因此会出现资源争夺问题，代码会出现错误，提示concurrent map writes
+
+2、解决方案：加入互斥锁
+
+3、我们的数的阶乘很大，结果回越界，可以将求阶乘改成 sum += uint64(i)
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+var (
+	myMap = make(map[int]int, 10)
+	// 声明一个全局的互斥锁
+	// sync 是包：synchornized 同步
+	// Mutex 是互斥
+	lock sync.Mutex
+)
+
+func test(n int) {
+	res := 1
+	for i := 1; i <= n; i++ {
+		res *= i
+	}
+	// 这里将res结果放入到myMap
+	// 加锁
+	lock.Lock()
+	myMap[n] = res // 第一个问题：fatal error: concurrent map writes
+	// 解锁
+	lock.Unlock()
+}
+
+func main() {
+	// 开启多个协程
+	for i := 1; i <= 20; i++ {
+		go test(i)
+	}
+
+	// 休眠10秒钟【第二个问题：？？？】
+	time.Sleep(time.Second * 5)
+
+	// 遍历结果
+	lock.Lock()
+	for i, v := range myMap {
+		fmt.Printf("map[%d]=%d\n", i, v)
+	}
+	lock.Unlock()
+}
+
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
